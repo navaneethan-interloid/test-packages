@@ -1,10 +1,30 @@
+import 'dotenv/config';
+import { bootstrapSentry, bootstrapTracing } from '@interloid/observability';
+
+bootstrapSentry({
+  enabled: process.env.SENTRY_ENABLED === 'true',
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  release: process.env.APP_VERSION ?? '0.0.0',
+  tracesSampleRate: 0.1,
+});
+
+bootstrapTracing({
+  enabled: process.env.OTEL_ENABLED == 'true',
+  serviceName: process.env.SERVICE_NAME ?? 'my-service',
+  serviceVersion: process.env.APP_VERSION ?? '0.0.0',
+  exporter: { type: 'console' },
+});
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggerService } from '@interloid/logger';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  // 1. Configure Swagger Options
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(LoggerService));
   const config = new DocumentBuilder()
     .setTitle('Testing API')
     .setDescription('The Starter app package testing API')
@@ -12,8 +32,11 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+  const logger = app.get(LoggerService);
+
+  app.useGlobalInterceptors(new LoggingInterceptor(logger));
 
   SwaggerModule.setup('api/docs', app, document);
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000,'0.0.0.0');
 }
 bootstrap();
