@@ -14,9 +14,11 @@ import { ValidationModule } from '@interloid/validation';
 import { ObservabilityModule } from '@interloid/observability';
 import { appConfigSchema } from './config/env.config';
 import { OrdersService } from './order/order.service';
+import { GLOBAL_THROTTLER_PRESET, SecurityModule } from '@interloid/security';
 
 @Module({
   imports: [
+    SecurityModule.forRoot({ throttler: GLOBAL_THROTTLER_PRESET, csrf: {} }),
     ObservabilityModule.forRoot({
       health: {
         diskThresholdPercent: 0.5,

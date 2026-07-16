@@ -1,4 +1,3 @@
-// src/common/interceptors/logging.interceptor.ts
 import {
   CallHandler,
   ExecutionContext,
@@ -24,14 +23,28 @@ export class LoggingInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          this.logCompletion(method, originalUrl, response.statusCode, startTime, 'completed');
+          this.logCompletion(
+            method,
+            originalUrl,
+            response.statusCode,
+            startTime,
+            'completed',
+          );
         },
         error: (err: unknown) => {
           const statusCode =
-            err instanceof Error && 'status' in err && typeof err.status === 'number'
+            err instanceof Error &&
+            'status' in err &&
+            typeof err.status === 'number'
               ? err.status
               : 500;
-          this.logCompletion(method, originalUrl, statusCode, startTime, 'failed');
+          this.logCompletion(
+            method,
+            originalUrl,
+            statusCode,
+            startTime,
+            'failed',
+          );
         },
       }),
     );

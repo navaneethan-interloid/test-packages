@@ -1,16 +1,11 @@
-import { Body, Controller, Get, Post, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  ChangePasswordDto,
-  LoginDto,
-  LoginSchema,
-  RegisterSchema,
-} from './dto/login.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ChangePasswordDto, LoginDto } from './dto/login.dto';
 import { TypedConfigService } from '@interloid/config';
-import fs from 'fs';
 import { AppConfig } from './config/env.config';
 import { OrdersService } from './order/order.service';
+import { SkipThrottle, StrictThrottle } from '@interloid/security';
 
 @Controller()
 export class AppController {
@@ -21,27 +16,26 @@ export class AppController {
   ) {}
 
   @Post('/login')
+  @StrictThrottle('login', 20, 60)
   @ApiOperation({ summary: 'User Login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto) {
-
+  login(@Body() loginDto: LoginDto) {
     return this.appService.login(loginDto.email);
   }
 
   @Post('/password')
+  @SkipThrottle()
   @ApiResponse({ status: 200, description: 'Password validated successfully' })
   @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
-
+  changePassword(@Body() changePasswordDto: ChangePasswordDto) {
     return changePasswordDto;
   }
 
   @Get('/error')
-  async getError() {
-
+  getError() {
     return this.appService.getError();
   }
   // @Get('config-check')
@@ -62,5 +56,4 @@ export class AppController {
   //     all: this.config.getAll(), // Returns the frozen object
   //   };
   // }
-  
 }

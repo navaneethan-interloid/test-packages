@@ -1,14 +1,11 @@
-import {
-  buildPaginationMeta,
-  type ApiResponse,
-} from '@interloid/core';
+import { buildPaginationMeta, type ApiResponse } from '@interloid/core';
 import { LoggerService } from '@interloid/logger';
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
   constructor(private readonly logger: LoggerService) {}
-  async login(email: string): Promise<ApiResponse<string>> {
+  login(email: string): ApiResponse<string> {
     const pageMeta = buildPaginationMeta(20, { page: 1, pageSize: 10 });
     const data = 'sample data';
     this.logger.info('login', { email });
